@@ -1,6 +1,7 @@
 package main
 
 import (
+	"async_logger/codegen"
 	"context"
 	"fmt"
 	"io"
@@ -32,6 +33,8 @@ const (
 	"after_disconnect": ["/main.Biz/Add"]
 }`
 )
+
+// ACL — Access Control List
 
 // чтобы не было сюрпризов когда где-то не успела преключиться горутина и не успело что-то стортовать
 func wait(amout int) {
@@ -138,15 +141,15 @@ func TestACL(t *testing.T) {
 	conn := getGrpcConn(t)
 	defer conn.Close()
 
-	biz := NewBizClient(conn)
-	adm := NewAdminClient(conn)
+	biz := codegen.NewBizClient(conn)
+	adm := codegen.NewAdminClient(conn)
 
 	for idx, ctx := range []context.Context{
 		context.Background(),       // нет поля для ACL
 		getConsumerCtx("unknown"),  // поле есть, неизвестный консюмер
 		getConsumerCtx("biz_user"), // поле есть, нет доступа
 	} {
-		_, err = biz.Test(ctx, &Nothing{})
+		_, err = biz.Test(ctx, &codegen.Nothing{})
 		if err == nil {
 			t.Fatalf("[%d] ACL fail: expected err on disallowed method", idx)
 		} else if code := grpc.Code(err); code != codes.Unauthenticated {
@@ -155,21 +158,21 @@ func TestACL(t *testing.T) {
 	}
 
 	// есть доступ
-	_, err = biz.Check(getConsumerCtx("biz_user"), &Nothing{})
+	_, err = biz.Check(getConsumerCtx("biz_user"), &codegen.Nothing{})
 	if err != nil {
 		t.Fatalf("ACL fail: unexpected error: %v", err)
 	}
-	_, err = biz.Check(getConsumerCtx("biz_admin"), &Nothing{})
+	_, err = biz.Check(getConsumerCtx("biz_admin"), &codegen.Nothing{})
 	if err != nil {
 		t.Fatalf("ACL fail: unexpected error: %v", err)
 	}
-	_, err = biz.Test(getConsumerCtx("biz_admin"), &Nothing{})
+	_, err = biz.Test(getConsumerCtx("biz_admin"), &codegen.Nothing{})
 	if err != nil {
 		t.Fatalf("ACL fail: unexpected error: %v", err)
 	}
 
 	// ACL на методах, которые возвращают поток данных
-	logger, err := adm.Logging(getConsumerCtx("unknown"), &Nothing{})
+	logger, err := adm.Logging(getConsumerCtx("unknown"), &codegen.Nothing{})
 	_, err = logger.Recv()
 	if err == nil {
 		t.Fatalf("ACL fail: expected err on disallowed method")
@@ -193,16 +196,16 @@ func TestLogging(t *testing.T) {
 	conn := getGrpcConn(t)
 	defer conn.Close()
 
-	biz := NewBizClient(conn)
-	adm := NewAdminClient(conn)
+	biz := codegen.NewBizClient(conn)
+	adm := codegen.NewAdminClient(conn)
 
-	logStream1, err := adm.Logging(getConsumerCtx("logger1"), &Nothing{})
+	logStream1, err := adm.Logging(getConsumerCtx("logger1"), &codegen.Nothing{})
 	time.Sleep(1 * time.Millisecond)
 
-	logStream2, err := adm.Logging(getConsumerCtx("logger2"), &Nothing{})
+	logStream2, err := adm.Logging(getConsumerCtx("logger2"), &codegen.Nothing{})
 
-	logData1 := []*Event{}
-	logData2 := []*Event{}
+	logData1 := []*codegen.Event{}
+	logData2 := []*codegen.Event{}
 
 	wait(1)
 
@@ -235,7 +238,7 @@ func TestLogging(t *testing.T) {
 			// это грязный хак
 			// protobuf добавляет к структуре свои поля, которвые не видны при приведении к строке и при reflect.DeepEqual
 			// поэтому берем не оригинал сообщения, а только нужные значения
-			logData1 = append(logData1, &Event{Consumer: evt.Consumer, Method: evt.Method})
+			logData1 = append(logData1, &codegen.Event{Consumer: evt.Consumer, Method: evt.Method})
 		}
 	}()
 	go func() {
@@ -254,28 +257,28 @@ func TestLogging(t *testing.T) {
 			// это грязный хак
 			// protobuf добавляет к структуре свои поля, которвые не видны при приведении к строке и при reflect.DeepEqual
 			// поэтому берем не оригинал сообщения, а только нужные значения
-			logData2 = append(logData2, &Event{Consumer: evt.Consumer, Method: evt.Method})
+			logData2 = append(logData2, &codegen.Event{Consumer: evt.Consumer, Method: evt.Method})
 		}
 	}()
 
-	biz.Check(getConsumerCtx("biz_user"), &Nothing{})
+	biz.Check(getConsumerCtx("biz_user"), &codegen.Nothing{})
 	time.Sleep(2 * time.Millisecond)
 
-	biz.Check(getConsumerCtx("biz_admin"), &Nothing{})
+	biz.Check(getConsumerCtx("biz_admin"), &codegen.Nothing{})
 	time.Sleep(2 * time.Millisecond)
 
-	biz.Test(getConsumerCtx("biz_admin"), &Nothing{})
+	biz.Test(getConsumerCtx("biz_admin"), &codegen.Nothing{})
 	time.Sleep(2 * time.Millisecond)
 
 	wg.Wait()
 
-	expectedLogData1 := []*Event{
+	expectedLogData1 := []*codegen.Event{
 		{Consumer: "logger2", Method: "/main.Admin/Logging"},
 		{Consumer: "biz_user", Method: "/main.Biz/Check"},
 		{Consumer: "biz_admin", Method: "/main.Biz/Check"},
 		{Consumer: "biz_admin", Method: "/main.Biz/Test"},
 	}
-	expectedLogData2 := []*Event{
+	expectedLogData2 := []*codegen.Event{
 		{Consumer: "biz_user", Method: "/main.Biz/Check"},
 		{Consumer: "biz_admin", Method: "/main.Biz/Check"},
 		{Consumer: "biz_admin", Method: "/main.Biz/Test"},
@@ -304,16 +307,16 @@ func TestStat(t *testing.T) {
 	conn := getGrpcConn(t)
 	defer conn.Close()
 
-	biz := NewBizClient(conn)
-	adm := NewAdminClient(conn)
+	biz := codegen.NewBizClient(conn)
+	adm := codegen.NewAdminClient(conn)
 
-	statStream1, err := adm.Statistics(getConsumerCtx("stat1"), &StatInterval{IntervalSeconds: 2})
+	statStream1, err := adm.Statistics(getConsumerCtx("stat1"), &codegen.StatInterval{IntervalSeconds: 2})
 	wait(1)
-	statStream2, err := adm.Statistics(getConsumerCtx("stat2"), &StatInterval{IntervalSeconds: 3})
+	statStream2, err := adm.Statistics(getConsumerCtx("stat2"), &codegen.StatInterval{IntervalSeconds: 3})
 
 	mu := &sync.Mutex{}
-	stat1 := &Stat{}
-	stat2 := &Stat{}
+	stat1 := &codegen.Stat{}
+	stat2 := &codegen.Stat{}
 
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
@@ -331,7 +334,7 @@ func TestStat(t *testing.T) {
 			// это грязный хак
 			// protobuf добавляет к структуре свои поля, которвые не видны при приведении к строке и при reflect.DeepEqual
 			// поэтому берем не оригинал сообщения, а только нужные значения
-			stat1 = &Stat{
+			stat1 = &codegen.Stat{
 				ByMethod:   stat.ByMethod,
 				ByConsumer: stat.ByConsumer,
 			}
@@ -352,7 +355,7 @@ func TestStat(t *testing.T) {
 			// это грязный хак
 			// protobuf добавляет к структуре свои поля, которвые не видны при приведении к строке и при reflect.DeepEqual
 			// поэтому берем не оригинал сообщения, а только нужные значения
-			stat2 = &Stat{
+			stat2 = &codegen.Stat{
 				ByMethod:   stat.ByMethod,
 				ByConsumer: stat.ByConsumer,
 			}
@@ -362,13 +365,13 @@ func TestStat(t *testing.T) {
 
 	wait(1)
 
-	biz.Check(getConsumerCtx("biz_user"), &Nothing{})
-	biz.Add(getConsumerCtx("biz_user"), &Nothing{})
-	biz.Test(getConsumerCtx("biz_admin"), &Nothing{})
+	biz.Check(getConsumerCtx("biz_user"), &codegen.Nothing{})
+	biz.Add(getConsumerCtx("biz_user"), &codegen.Nothing{})
+	biz.Test(getConsumerCtx("biz_admin"), &codegen.Nothing{})
 
 	wait(200) // 2 sec
 
-	expectedStat1 := &Stat{
+	expectedStat1 := &codegen.Stat{
 		ByMethod: map[string]uint64{
 			"/main.Biz/Check":        1,
 			"/main.Biz/Add":          1,
@@ -388,11 +391,11 @@ func TestStat(t *testing.T) {
 	}
 	mu.Unlock()
 
-	biz.Add(getConsumerCtx("biz_admin"), &Nothing{})
+	biz.Add(getConsumerCtx("biz_admin"), &codegen.Nothing{})
 
 	wait(220) // 2+ sec
 
-	expectedStat1 = &Stat{
+	expectedStat1 = &codegen.Stat{
 		Timestamp: 0,
 		ByMethod: map[string]uint64{
 			"/main.Biz/Add": 1,
@@ -401,7 +404,7 @@ func TestStat(t *testing.T) {
 			"biz_admin": 1,
 		},
 	}
-	expectedStat2 := &Stat{
+	expectedStat2 := &codegen.Stat{
 		Timestamp: 0,
 		ByMethod: map[string]uint64{
 			"/main.Biz/Check": 1,
@@ -443,17 +446,17 @@ func TestWorkAfterDisconnect(t *testing.T) {
 	conn := getGrpcConn(t)
 	defer conn.Close()
 
-	biz := NewBizClient(conn)
-	adm := NewAdminClient(conn)
+	biz := codegen.NewBizClient(conn)
+	adm := codegen.NewAdminClient(conn)
 
 	ctx1, cancel1 := getConsumerCtxWithCancel("logger1")
-	logStream1, err := adm.Logging(ctx1, &Nothing{})
+	logStream1, err := adm.Logging(ctx1, &codegen.Nothing{})
 	time.Sleep(1 * time.Millisecond)
 
-	logStream2, err := adm.Logging(getConsumerCtx("logger2"), &Nothing{})
+	logStream2, err := adm.Logging(getConsumerCtx("logger2"), &codegen.Nothing{})
 
-	logData1 := []*Event{}
-	logData2 := []*Event{}
+	logData1 := []*codegen.Event{}
+	logData2 := []*codegen.Event{}
 
 	wait(1)
 
@@ -486,7 +489,7 @@ func TestWorkAfterDisconnect(t *testing.T) {
 			// это грязный хак
 			// protobuf добавляет к структуре свои поля, которвые не видны при приведении к строке и при reflect.DeepEqual
 			// поэтому берем не оригинал сообщения, а только нужные значения
-			logData1 = append(logData1, &Event{Consumer: evt.Consumer, Method: evt.Method})
+			logData1 = append(logData1, &codegen.Event{Consumer: evt.Consumer, Method: evt.Method})
 		}
 	}()
 	go func() {
@@ -506,17 +509,17 @@ func TestWorkAfterDisconnect(t *testing.T) {
 			// это грязный хак
 			// protobuf добавляет к структуре свои поля, которвые не видны при приведении к строке и при reflect.DeepEqual
 			// поэтому берем не оригинал сообщения, а только нужные значения
-			logData2 = append(logData2, &Event{Consumer: evt.Consumer, Method: evt.Method})
+			logData2 = append(logData2, &codegen.Event{Consumer: evt.Consumer, Method: evt.Method})
 		}
 	}()
 
-	biz.Check(getConsumerCtx("biz_user"), &Nothing{})
+	biz.Check(getConsumerCtx("biz_user"), &codegen.Nothing{})
 	time.Sleep(2 * time.Millisecond)
 
-	biz.Check(getConsumerCtx("biz_admin"), &Nothing{})
+	biz.Check(getConsumerCtx("biz_admin"), &codegen.Nothing{})
 	time.Sleep(2 * time.Millisecond)
 
-	biz.Test(getConsumerCtx("biz_admin"), &Nothing{})
+	biz.Test(getConsumerCtx("biz_admin"), &codegen.Nothing{})
 	time.Sleep(2 * time.Millisecond)
 
 	// CHANGED
@@ -524,21 +527,21 @@ func TestWorkAfterDisconnect(t *testing.T) {
 	cancel1()
 	wait(12)
 
-	biz.Add(getConsumerCtx("after_disconnect"), &Nothing{})
+	biz.Add(getConsumerCtx("after_disconnect"), &codegen.Nothing{})
 	time.Sleep(2 * time.Millisecond)
-	biz.Add(getConsumerCtx("after_disconnect"), &Nothing{})
+	biz.Add(getConsumerCtx("after_disconnect"), &codegen.Nothing{})
 	time.Sleep(2 * time.Millisecond)
 	// END CHANGED
 
 	wg.Wait()
 
-	expectedLogData1 := []*Event{
+	expectedLogData1 := []*codegen.Event{
 		{Consumer: "logger2", Method: "/main.Admin/Logging"},
 		{Consumer: "biz_user", Method: "/main.Biz/Check"},
 		{Consumer: "biz_admin", Method: "/main.Biz/Check"},
 		{Consumer: "biz_admin", Method: "/main.Biz/Test"},
 	}
-	expectedLogData2 := []*Event{
+	expectedLogData2 := []*codegen.Event{
 		{Consumer: "biz_user", Method: "/main.Biz/Check"},
 		{Consumer: "biz_admin", Method: "/main.Biz/Check"},
 		{Consumer: "biz_admin", Method: "/main.Biz/Test"},

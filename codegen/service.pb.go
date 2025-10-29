@@ -12,13 +12,14 @@
 // полученный при генерации код (service.pb.go и service_grpc.pb.go) при загрузки в автогрейдер надо будет положить в service.go
 // на время локальной разработки можно ничего не делать
 
-package main
+package codegen
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
