@@ -1,13 +1,14 @@
 package log
 
 import (
+	"async_logger/AdminService"
 	pb "async_logger/codegen"
 
 	"google.golang.org/grpc"
 )
 
 type ServerAPI struct {
-	pb.UnimplementedAdminServer
+	AdminService.BaseServer
 }
 
 func RegisterServerAPI(grpc *grpc.Server) {
