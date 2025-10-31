@@ -56,8 +56,13 @@ func parseACL(ACLData string) (map[string][]string, error) {
 	return acl, nil
 }
 
-func StartMyMicroservice(_ context.Context, listenAddr, ACLData string) error {
+func StartMyMicroservice(ctx context.Context, listenAddr, ACLData string) error {
 
+	grpcServer := grpc.NewServer()
+	go func() {
+		<-ctx.Done()
+		grpcServer.GracefulStop()
+	}()
 	lis, err := net.Listen("tcp", listenAddr)
 	if err != nil {
 		return err
@@ -66,10 +71,9 @@ func StartMyMicroservice(_ context.Context, listenAddr, ACLData string) error {
 
 	service := &Service{}
 
-	s := grpc.NewServer()
-	pb.RegisterBizServer(s, service)
-	pb.RegisterAdminServer(s, service)
-	reflection.Register(s)
+	pb.RegisterBizServer(grpcServer, service)
+	pb.RegisterAdminServer(grpcServer, service)
+	reflection.Register(grpcServer)
 
 	service.Init(ACLData)
 	if err != nil {
@@ -81,7 +85,14 @@ func StartMyMicroservice(_ context.Context, listenAddr, ACLData string) error {
 		return err
 	}
 
+	go func() {
+		if err := grpcServer.Serve(lis); err != nil {
+			fmt.Printf("failed to serve: %v", err)
+		}
+	}()
+
 	fmt.Print(acl)
+
 	return nil
 }
 
