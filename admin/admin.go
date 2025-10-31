@@ -1,8 +1,8 @@
-package AdminService
+package admin
 
 import (
-	"async_logger/AdminService/logging"
-	"async_logger/AdminService/statistics"
+	"async_logger/admin/logging"
+	"async_logger/admin/statistics"
 	pb "async_logger/codegen"
 
 	"google.golang.org/grpc"
@@ -24,15 +24,25 @@ func (s *ServerAPI) Statistics(
 	interval *pb.StatInterval,
 	server pb.Admin_StatisticsServer,
 ) error {
-	statistics.GetStatistics()
+	err := statistics.GetStatistics()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (s *ServerAPI) Logging(
 	nothing *pb.Nothing,
 	server pb.Admin_LoggingServer,
-
 ) error {
-	logging.GetLogs()
+	err := logging.GetLogs()
+	if err != nil {
+		return err
+	}
 	return nil
+}
+
+// New это будет конструктор
+func New() *ServerAPI {
+	return &ServerAPI{}
 }
