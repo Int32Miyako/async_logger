@@ -1,8 +1,11 @@
 package main
 
 import (
+	"async_logger/internal/acl"
 	"async_logger/internal/app"
 	"context"
+	"errors"
+	"fmt"
 )
 
 /*
@@ -18,9 +21,14 @@ import (
 func StartMyMicroservice(ctx context.Context, listenAddr, ACLData string) error {
 	service := app.New(listenAddr)
 
+	ACL, err := acl.ParseACL(ACLData)
+	if err != nil {
+		return errors.New(fmt.Sprintf("ACL parse error, reason: %s %s", err, ACL))
+	}
+
 	errCh := make(chan error)
 	go func() {
-		if err := service.Start(); err != nil {
+		if err = service.Start(); err != nil {
 			errCh <- err
 		}
 	}()

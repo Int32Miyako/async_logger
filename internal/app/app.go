@@ -39,6 +39,8 @@ func (app *App) Start() error {
 	//		panic(err)
 	//	}
 	//}(lis)
+	// жизненным циклом управляет graceful shutdown
+	// defer lis.Close() не нужен
 
 	return app.gRPCServer.Serve(lis)
 }
