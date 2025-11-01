@@ -19,6 +19,7 @@ func New(listenAddr string) *App {
 
 	admin.RegisterServerAPI(gRPCServer)
 	biz.RegisterBizAPI(gRPCServer)
+	reflection.Register(gRPCServer) // тоже сервис, чтобы посмотреть снаружи наши контракты без proto
 
 	return &App{
 		gRPCServer: gRPCServer,
@@ -32,23 +33,14 @@ func (app *App) Start() error {
 		return err
 	}
 
-	defer func(lis net.Listener) {
-		err = lis.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(lis)
+	//defer func(lis net.Listener) {
+	//	err = lis.Close()
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//}(lis)
 
-	err = app.gRPCServer.Serve(lis)
-	if err != nil {
-		return err
-	}
-
-	reflection.Register(app.gRPCServer) // регистрация сервера для рефлексии
-	// хз зачем она нужна, но пусть будет
-	// и даже это помог написать чатгпт
-
-	return nil
+	return app.gRPCServer.Serve(lis)
 }
 
 func (app *App) Stop() error {

@@ -23,14 +23,13 @@ func StartMyMicroservice(ctx context.Context, listenAddr, ACLData string) error 
 		if err := service.Start(); err != nil {
 			errCh <- err
 		}
-		close(errCh)
 	}()
 
-	select {
-	case <-ctx.Done():
-		return service.Stop()
-	case err := <-errCh:
-		return err
-	}
+	go func() {
+		<-ctx.Done()
+		_ = service.Stop()
 
+	}()
+
+	return nil
 }
