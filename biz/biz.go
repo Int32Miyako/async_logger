@@ -1,6 +1,7 @@
 package biz
 
 import (
+	"async_logger/biz/test"
 	pb "async_logger/codegen"
 	"context"
 
@@ -31,7 +32,8 @@ func (s *ServerAPI) Add(
 }
 
 func (s *ServerAPI) Test(
-	_ context.Context, _ *pb.Nothing,
+	ctx context.Context, in *pb.Nothing,
 ) (*pb.Nothing, error) {
+	test.Test(acl, ctx)
 	return &pb.Nothing{}, nil
 }

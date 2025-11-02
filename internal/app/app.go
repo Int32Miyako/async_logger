@@ -12,9 +12,10 @@ import (
 type App struct {
 	gRPCServer *grpc.Server
 	listenAddr string
+	acl        map[string][]string
 }
 
-func New(listenAddr string) *App {
+func New(listenAddr string, ACLData map[string][]string) *App {
 	gRPCServer := grpc.NewServer()
 
 	admin.RegisterServerAPI(gRPCServer)
@@ -24,6 +25,7 @@ func New(listenAddr string) *App {
 	return &App{
 		gRPCServer: gRPCServer,
 		listenAddr: listenAddr,
+		acl:        ACLData,
 	}
 }
 
@@ -32,15 +34,6 @@ func (app *App) Start() error {
 	if err != nil {
 		return err
 	}
-
-	//defer func(lis net.Listener) {
-	//	err = lis.Close()
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//}(lis)
-	// жизненным циклом управляет graceful shutdown
-	// defer lis.Close() не нужен
 
 	return app.gRPCServer.Serve(lis)
 }

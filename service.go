@@ -19,12 +19,12 @@ import (
 */
 
 func StartMyMicroservice(ctx context.Context, listenAddr, ACLData string) error {
-	service := app.New(listenAddr)
-
 	ACL, err := acl.ParseACL(ACLData)
 	if err != nil {
 		return errors.New(fmt.Sprintf("ACL parse error, reason: %s %s", err, ACL))
 	}
+
+	service := app.New(listenAddr, ACL)
 
 	errCh := make(chan error)
 	go func() {

@@ -26,8 +26,6 @@ func ParseACL(ACLData string) (map[string][]string, error) {
 		return nil, err
 	}
 
-	isThisUserExistsInACL(aclData, "logger1")
-
 	return aclData, nil
 }
 
@@ -41,4 +39,22 @@ func isThisUserExistsInACL(acl map[string][]string, primaryKey string) bool {
 		return false
 
 	}
+}
+
+func GetMethodsForUser(acl map[string][]string, user string) []string {
+	if isThisUserExistsInACL(acl, user) {
+		return acl[user]
+	}
+	return []string{}
+}
+
+func IsUserAllowedForMethod(acl map[string][]string, user string, method string) bool {
+	methods := GetMethodsForUser(acl, user)
+	for _, m := range methods {
+		if m == method {
+			return true
+		}
+	}
+
+	return false
 }
