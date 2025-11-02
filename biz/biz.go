@@ -34,6 +34,6 @@ func (s *ServerAPI) Add(
 func (s *ServerAPI) Test(
 	ctx context.Context, in *pb.Nothing,
 ) (*pb.Nothing, error) {
-	test.Test(acl, ctx)
+	test.Test(ctx)
 	return &pb.Nothing{}, nil
 }

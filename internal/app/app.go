@@ -3,6 +3,7 @@ package app
 import (
 	"async_logger/admin"
 	"async_logger/biz"
+	"async_logger/internal/interceptors"
 	"net"
 
 	"google.golang.org/grpc"
@@ -16,7 +17,9 @@ type App struct {
 }
 
 func New(listenAddr string, ACLData map[string][]string) *App {
-	gRPCServer := grpc.NewServer()
+	gRPCServer := grpc.NewServer(
+		grpc.UnaryInterceptor(interceptors.AclInterceptor),
+	)
 
 	admin.RegisterServerAPI(gRPCServer)
 	biz.RegisterBizAPI(gRPCServer)

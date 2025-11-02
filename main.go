@@ -3,7 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 )
 
 func main() {
@@ -27,12 +30,19 @@ func FirstTest() {
 	err := StartMyMicroservice(ctx, listenAddr, ACLData)
 	if err != nil {
 		fmt.Printf("cant start server initial: %v", err)
+		return
 	}
 
-	mut := &sync.Mutex{}
-	mut.Lock()
+	fmt.Println("Сервер запущен на", listenAddr)
+	fmt.Println("Нажмите Ctrl+C для остановки")
+
+	// Ждем сигнала завершения
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	<-sigChan
+
+	fmt.Println("\nОстанавливаем сервер...")
 	finish()
-	mut.Unlock()
 
 }
 
@@ -55,12 +65,19 @@ func SecondTest() {
 	err := StartMyMicroservice(ctx, listenAddr, ACLData)
 	if err != nil {
 		fmt.Printf("cant start server initial: %v", err)
+		return
 	}
 
-	mut := &sync.Mutex{}
-	mut.Lock()
+	fmt.Println("Сервер запущен на", listenAddr)
+	fmt.Println("Нажмите Ctrl+C для остановки")
+
+	// Ждем сигнала завершения
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	<-sigChan
+
+	fmt.Println("\nОстанавливаем сервер...")
 	finish()
-	mut.Unlock()
 
 }
 
