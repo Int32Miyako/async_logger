@@ -3,6 +3,7 @@ package acl
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // ACL — Access Control List
@@ -41,7 +42,7 @@ func isThisUserExistsInACL(acl map[string][]string, primaryKey string) bool {
 	}
 }
 
-func GetMethodsForUser(acl map[string][]string, user string) []string {
+func getMethodsForUser(acl map[string][]string, user string) []string {
 	if isThisUserExistsInACL(acl, user) {
 		return acl[user]
 	}
@@ -49,9 +50,9 @@ func GetMethodsForUser(acl map[string][]string, user string) []string {
 }
 
 func IsUserAllowedForMethod(acl map[string][]string, user, method string) bool {
-	allowedMethods := GetMethodsForUser(acl, user)
+	allowedMethods := getMethodsForUser(acl, user)
 	for _, m := range allowedMethods {
-		if m == method {
+		if m == method || strings.HasSuffix(m, "/*") && strings.HasPrefix(method, strings.TrimSuffix(m, "/*")) {
 			return true
 		}
 	}

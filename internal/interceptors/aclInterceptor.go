@@ -3,7 +3,6 @@ package interceptors
 import (
 	"async_logger/internal/acl"
 	"context"
-	"fmt"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -26,11 +25,11 @@ func AclInterceptor(aclData map[string][]string) grpc.UnaryServerInterceptor {
 		}
 
 		consumers := md.Get("consumer")
-		if len(consumers) == 0 {
+		if len(consumers) == 0 || len(consumers[0]) == 0 {
 			return nil, status.Error(codes.Unauthenticated, "no consumer provided")
 		}
-		user := consumers[0]
 
+		user := consumers[0]
 		if len(user) == 0 {
 			return nil, status.Error(codes.Unauthenticated, "no user header provided")
 		}
@@ -41,7 +40,7 @@ func AclInterceptor(aclData map[string][]string) grpc.UnaryServerInterceptor {
 			return nil, status.Errorf(codes.Unauthenticated, "user %s not allowed for %s", user, method)
 		}
 
-		fmt.Printf("[ACL] user=%s -> %s ✅\n", user, method)
+		// fmt.Printf("[ACL] user=%s -> %s ✅\n", user, method)
 
 		// разрешаем выполнение
 		return handler(ctx, req)
