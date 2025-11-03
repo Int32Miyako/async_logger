@@ -48,9 +48,9 @@ func GetMethodsForUser(acl map[string][]string, user string) []string {
 	return []string{}
 }
 
-func IsUserAllowedForMethod(acl map[string][]string, user string, method string) bool {
-	methods := GetMethodsForUser(acl, user)
-	for _, m := range methods {
+func IsUserAllowedForMethod(acl map[string][]string, user, method string) bool {
+	allowedMethods := GetMethodsForUser(acl, user)
+	for _, m := range allowedMethods {
 		if m == method {
 			return true
 		}

@@ -8,7 +8,6 @@ package codegen
 
 import (
 	context "context"
-
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -36,7 +35,7 @@ func NewAdminClient(cc grpc.ClientConnInterface) AdminClient {
 }
 
 func (c *adminClient) Logging(ctx context.Context, in *Nothing, opts ...grpc.CallOption) (Admin_LoggingClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Admin_ServiceDesc.Streams[0], "/main.Admin/Logging", opts...)
+	stream, err := c.cc.NewStream(ctx, &Admin_ServiceDesc.Streams[0], "/codegen.Admin/Logging", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +67,7 @@ func (x *adminLoggingClient) Recv() (*Event, error) {
 }
 
 func (c *adminClient) Statistics(ctx context.Context, in *StatInterval, opts ...grpc.CallOption) (Admin_StatisticsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Admin_ServiceDesc.Streams[1], "/main.Admin/Statistics", opts...)
+	stream, err := c.cc.NewStream(ctx, &Admin_ServiceDesc.Streams[1], "/codegen.Admin/Statistics", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +176,7 @@ func (x *adminStatisticsServer) Send(m *Stat) error {
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Admin_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "main.Admin",
+	ServiceName: "codegen.Admin",
 	HandlerType: (*AdminServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
@@ -214,7 +213,7 @@ func NewBizClient(cc grpc.ClientConnInterface) BizClient {
 
 func (c *bizClient) Check(ctx context.Context, in *Nothing, opts ...grpc.CallOption) (*Nothing, error) {
 	out := new(Nothing)
-	err := c.cc.Invoke(ctx, "/main.Biz/Check", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/codegen.Biz/Check", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +222,7 @@ func (c *bizClient) Check(ctx context.Context, in *Nothing, opts ...grpc.CallOpt
 
 func (c *bizClient) Add(ctx context.Context, in *Nothing, opts ...grpc.CallOption) (*Nothing, error) {
 	out := new(Nothing)
-	err := c.cc.Invoke(ctx, "/main.Biz/Add", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/codegen.Biz/Add", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +231,7 @@ func (c *bizClient) Add(ctx context.Context, in *Nothing, opts ...grpc.CallOptio
 
 func (c *bizClient) Test(ctx context.Context, in *Nothing, opts ...grpc.CallOption) (*Nothing, error) {
 	out := new(Nothing)
-	err := c.cc.Invoke(ctx, "/main.Biz/Test", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/codegen.Biz/Test", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +284,7 @@ func _Biz_Check_Handler(srv interface{}, ctx context.Context, dec func(interface
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/main.Biz/Check",
+		FullMethod: "/codegen.Biz/Check",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BizServer).Check(ctx, req.(*Nothing))
@@ -303,7 +302,7 @@ func _Biz_Add_Handler(srv interface{}, ctx context.Context, dec func(interface{}
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/main.Biz/Add",
+		FullMethod: "/codegen.Biz/Add",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BizServer).Add(ctx, req.(*Nothing))
@@ -321,7 +320,7 @@ func _Biz_Test_Handler(srv interface{}, ctx context.Context, dec func(interface{
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/main.Biz/Test",
+		FullMethod: "/codegen.Biz/Test",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BizServer).Test(ctx, req.(*Nothing))
@@ -333,7 +332,7 @@ func _Biz_Test_Handler(srv interface{}, ctx context.Context, dec func(interface{
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Biz_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "main.Biz",
+	ServiceName: "codegen.Biz",
 	HandlerType: (*BizServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

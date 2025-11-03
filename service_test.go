@@ -23,14 +23,15 @@ const (
 	listenAddr string = "127.0.0.1:8082"
 
 	// кого по каким методам пускать
+	// изменил тестовый префикс с /main на /codegen чтобы подходило под наш proto
 	ACLData string = `{
-	"logger1":          ["/main.Admin/Logging"],
-	"logger2":          ["/main.Admin/Logging"],
-	"stat1":            ["/main.Admin/Statistics"],
-	"stat2":            ["/main.Admin/Statistics"],
-	"biz_user":         ["/main.Biz/Check", "/main.Biz/Add"],
-	"biz_admin":        ["/main.Biz/*"],
-	"after_disconnect": ["/main.Biz/Add"]
+	"logger1":          ["/codegen.Admin/Logging"],
+	"logger2":          ["/codegen.Admin/Logging"],
+	"stat1":            ["/codegen.Admin/Statistics"],
+	"stat2":            ["/codegen.Admin/Statistics"],
+	"biz_user":         ["/codegen.Biz/Check", "/codegen.Biz/Add"],
+	"biz_admin":        ["/codegen.Biz/*"],
+	"after_disconnect": ["/codegen.Biz/Add"]
 }`
 )
 

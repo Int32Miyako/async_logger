@@ -1,4 +1,5 @@
 .PHONY: install gen test
+GOBIN ?= $(HOME)/go/bin
 
 install:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.27.1
@@ -8,9 +9,9 @@ gen: check-env
 	protoc --version # 3.19.3
 	protoc-gen-go --version # v1.27.1
 	protoc-gen-go-grpc --version # 1.2.0
-	protoc --go_out=. --go-grpc_out=. service.proto
+	protoc -I ./codegen --go_out=. --go-grpc_out=. service.proto
 	# in combination with 'option go_package = ".";' in service.proto this will generate files in this folder with package main
-	sed -i "" 's/package __/package main/g' *.pb.go 
+	# sed -i "" 's/package __/package main/g' *.pb.go
 
 test:
 	go test -v -race
