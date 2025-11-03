@@ -19,6 +19,7 @@ type App struct {
 func New(listenAddr string, ACLData map[string][]string) *App {
 	gRPCServer := grpc.NewServer(
 		grpc.UnaryInterceptor(interceptors.AclInterceptor(ACLData)),
+		grpc.StreamInterceptor(interceptors.AclStreamInterceptor(ACLData)),
 	)
 
 	admin.RegisterServerAPI(gRPCServer)

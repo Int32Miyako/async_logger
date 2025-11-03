@@ -2,7 +2,6 @@ package acl
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 )
 
@@ -32,11 +31,9 @@ func ParseACL(ACLData string) (map[string][]string, error) {
 
 func isThisUserExistsInACL(acl map[string][]string, primaryKey string) bool {
 
-	if val, ok := acl[primaryKey]; ok {
-		fmt.Print("Users found: ", val)
+	if _, ok := acl[primaryKey]; ok {
 		return true
 	} else {
-		fmt.Print("User not found")
 		return false
 
 	}

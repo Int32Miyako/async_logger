@@ -19,30 +19,49 @@ func AclInterceptor(aclData map[string][]string) grpc.UnaryServerInterceptor {
 		handler grpc.UnaryHandler,
 	) (any, error) {
 
-		md, ok := metadata.FromIncomingContext(ctx)
-		if !ok {
-			return nil, status.Error(codes.Unauthenticated, "no metadata provided")
+		err := checkACL(aclData, ctx, info.FullMethod)
+		if err != nil {
+			return nil, err
 		}
-
-		consumers := md.Get("consumer")
-		if len(consumers) == 0 || len(consumers[0]) == 0 {
-			return nil, status.Error(codes.Unauthenticated, "no consumer provided")
-		}
-
-		user := consumers[0]
-		if len(user) == 0 {
-			return nil, status.Error(codes.Unauthenticated, "no user header provided")
-		}
-
-		method := info.FullMethod
-
-		if !acl.IsUserAllowedForMethod(aclData, user, method) {
-			return nil, status.Errorf(codes.Unauthenticated, "user %s not allowed for %s", user, method)
-		}
-
-		// fmt.Printf("[ACL] user=%s -> %s ✅\n", user, method)
 
 		// разрешаем выполнение
 		return handler(ctx, req)
 	}
+}
+
+func AclStreamInterceptor(aclData map[string][]string) grpc.StreamServerInterceptor {
+	return func(
+		srv any,
+		stream grpc.ServerStream,
+		info *grpc.StreamServerInfo,
+		handler grpc.StreamHandler,
+	) error {
+		if err := checkACL(aclData, stream.Context(), info.FullMethod); err != nil {
+			return err
+		}
+		return handler(srv, stream)
+	}
+}
+
+func checkACL(aclData map[string][]string, ctx context.Context, fullMethod string) error {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return status.Error(codes.Unauthenticated, "no metadata provided")
+	}
+
+	consumers := md.Get("consumer")
+	if len(consumers) == 0 {
+		return status.Error(codes.Unauthenticated, "no consumer provided")
+	}
+
+	user := consumers[0]
+	if len(user) == 0 {
+		return status.Error(codes.Unauthenticated, "no user header provided")
+	}
+
+	if !acl.IsUserAllowedForMethod(aclData, user, fullMethod) {
+		return status.Errorf(codes.Unauthenticated, "user %s not allowed for %s", user, fullMethod)
+	}
+
+	return nil
 }
