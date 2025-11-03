@@ -24,7 +24,7 @@ func (s *ServerAPI) Statistics(
 	interval *pb.StatInterval,
 	server pb.Admin_StatisticsServer,
 ) error {
-	err := statistics.GetStatistics()
+	err := statistics.GetStatistics(interval, server)
 	if err != nil {
 		return err
 	}
@@ -35,14 +35,10 @@ func (s *ServerAPI) Logging(
 	nothing *pb.Nothing,
 	server pb.Admin_LoggingServer,
 ) error {
-	err := logging.GetLogs()
+	err := logging.GetLogs(nothing, server)
+
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-// New это будет конструктор
-func New() *ServerAPI {
-	return &ServerAPI{}
 }
