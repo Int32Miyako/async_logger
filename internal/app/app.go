@@ -18,7 +18,7 @@ type App struct {
 	logger     *logger.Logger
 }
 
-func New(listenAddr string, ACLData map[string][]string, logger *logger.Logger) *App {
+func New(listenAddr string, ACLData map[string][]string) *App {
 	gRPCServer := grpc.NewServer(
 		grpc.UnaryInterceptor(interceptors.AclInterceptor(ACLData)),
 		grpc.StreamInterceptor(interceptors.AclStreamInterceptor(ACLData)),
@@ -32,7 +32,7 @@ func New(listenAddr string, ACLData map[string][]string, logger *logger.Logger) 
 		gRPCServer: gRPCServer,
 		listenAddr: listenAddr,
 		acl:        ACLData,
-		logger:     logger,
+		logger:     logger.New(),
 	}
 }
 
