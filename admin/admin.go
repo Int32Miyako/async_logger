@@ -4,6 +4,7 @@ import (
 	"async_logger/admin/logging"
 	"async_logger/admin/statistics"
 	pb "async_logger/codegen"
+	"async_logger/internal/logger"
 
 	"google.golang.org/grpc"
 )
@@ -14,17 +15,20 @@ import (
 
 type ServerAPI struct {
 	pb.UnimplementedAdminServer
+	logger *logger.Logger
 }
 
-func RegisterServerAPI(gRPC *grpc.Server) {
-	pb.RegisterAdminServer(gRPC, &ServerAPI{})
+func RegisterServerAPI(gRPC *grpc.Server, eventLogger *logger.Logger) {
+	pb.RegisterAdminServer(gRPC, &ServerAPI{
+		logger: eventLogger,
+	})
 }
 
 func (s *ServerAPI) Logging(
 	_ *pb.Nothing,
 	server pb.Admin_LoggingServer,
 ) error {
-	err := logging.GetLogs(server)
+	err := logging.GetLogs(server, s.logger)
 	if err != nil {
 		return err
 	}

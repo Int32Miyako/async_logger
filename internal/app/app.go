@@ -19,12 +19,13 @@ type App struct {
 }
 
 func New(listenAddr string, ACLData map[string][]string) *App {
+	eventLogger := logger.New()
 	gRPCServer := grpc.NewServer(
-		grpc.UnaryInterceptor(interceptors.AclInterceptor(ACLData)),
-		grpc.StreamInterceptor(interceptors.AclStreamInterceptor(ACLData)),
+		grpc.UnaryInterceptor(interceptors.AclInterceptor(ACLData, eventLogger)),
+		grpc.StreamInterceptor(interceptors.AclStreamInterceptor(ACLData, eventLogger)),
 	)
 
-	admin.RegisterServerAPI(gRPCServer)
+	admin.RegisterServerAPI(gRPCServer, eventLogger)
 	biz.RegisterBizAPI(gRPCServer)
 	reflection.Register(gRPCServer) // тоже сервис, чтобы посмотреть снаружи наши контракты без proto
 
@@ -32,7 +33,7 @@ func New(listenAddr string, ACLData map[string][]string) *App {
 		gRPCServer: gRPCServer,
 		listenAddr: listenAddr,
 		acl:        ACLData,
-		logger:     logger.New(),
+		logger:     eventLogger,
 	}
 }
 

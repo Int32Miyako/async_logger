@@ -2,16 +2,18 @@ package interceptors
 
 import (
 	"async_logger/internal/acl"
+	"async_logger/internal/logger"
 	"context"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 )
 
 // AclInterceptor возвращает интерсептор с замыканием на aclData
-func AclInterceptor(aclData map[string][]string) grpc.UnaryServerInterceptor {
+func AclInterceptor(aclData map[string][]string, logger *logger.Logger) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req any,
@@ -19,7 +21,7 @@ func AclInterceptor(aclData map[string][]string) grpc.UnaryServerInterceptor {
 		handler grpc.UnaryHandler,
 	) (any, error) {
 
-		err := checkACL(aclData, ctx, info.FullMethod)
+		err := checkACL(aclData, logger, ctx, info.FullMethod)
 		if err != nil {
 			return nil, err
 		}
@@ -29,21 +31,21 @@ func AclInterceptor(aclData map[string][]string) grpc.UnaryServerInterceptor {
 	}
 }
 
-func AclStreamInterceptor(aclData map[string][]string) grpc.StreamServerInterceptor {
+func AclStreamInterceptor(aclData map[string][]string, logger *logger.Logger) grpc.StreamServerInterceptor {
 	return func(
 		srv any,
 		stream grpc.ServerStream,
 		info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler,
 	) error {
-		if err := checkACL(aclData, stream.Context(), info.FullMethod); err != nil {
+		if err := checkACL(aclData, logger, stream.Context(), info.FullMethod); err != nil {
 			return err
 		}
 		return handler(srv, stream)
 	}
 }
 
-func checkACL(aclData map[string][]string, ctx context.Context, fullMethod string) error {
+func checkACL(aclData map[string][]string, logger *logger.Logger, ctx context.Context, fullMethod string) error {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return status.Error(codes.Unauthenticated, "no metadata provided")
@@ -62,6 +64,13 @@ func checkACL(aclData map[string][]string, ctx context.Context, fullMethod strin
 	if !acl.IsUserAllowedForMethod(aclData, user, fullMethod) {
 		return status.Errorf(codes.Unauthenticated, "user %s not allowed for %s", user, fullMethod)
 	}
+
+	host := ""
+	if p, ok := peer.FromContext(ctx); ok {
+		host = p.Addr.String()
+	}
+
+	logger.Log(user, fullMethod, host)
 
 	return nil
 }

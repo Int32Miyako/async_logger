@@ -34,28 +34,7 @@ func GetStatistics(
 		if err == io.EOF {
 			return nil
 		}
+
 	}
-
-	/*
-
-		for {
-			inWord, err := inStream.Recv()
-			if err == io. EOF {
-				return nil
-			}
-			if err != nil {
-				return err
-			}
-
-			out := &translit.Word{
-			Word: tr.Translit(inWord.Word),
-			fmt.Println(inWord.Word, "->" , out.Word)
-			inStream.Send(out)
-
-		}
-
-		return nil
-
-	*/
 
 }

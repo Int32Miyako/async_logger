@@ -1,42 +1,37 @@
 package logger
 
-import "context"
+import (
+	"time"
+)
+
+// не подтягивал целую либу pb а написал свой Ивент
+
+type Event struct {
+	Timestamp int64
+	Consumer  string
+	Method    string
+	Host      string
+}
 
 type Logger struct {
-	logs chan string
-
-	metrics map[string]int64
+	log chan *Event
 }
 
-type ResultLog struct {
-	Consumer string
-	Method   string
-	Host     string
-}
-
-func (l *Logger) Log(ctx context.Context) *ResultLog {
-
-	return &ResultLog{
-		Consumer: "",
-		Method:   "",
-		Host:     "",
+func (l *Logger) Log(consumer, method, host string) {
+	l.log <- &Event{
+		Timestamp: time.Now().Unix(),
+		Consumer:  consumer,
+		Method:    method,
+		Host:      host,
 	}
-
 }
 
-func (l *Logger) GetLog()
-
-func (l *Logger) AddOneToMethodCounter(methodName string) {
-	l.metrics[methodName] <- 1
-}
-
-func (l *Logger) GetCountOfInvokesMethod(methodName string) int64 {
-	l.metrics <- 1
+func (l *Logger) GetLog() *Event {
+	return <-l.log
 }
 
 func New() *Logger {
 	return &Logger{
-		logs:    make(chan string),
-		metrics: map[string]int64{},
+		log: make(chan *Event),
 	}
 }
