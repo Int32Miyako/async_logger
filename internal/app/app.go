@@ -4,6 +4,7 @@ import (
 	"async_logger/admin"
 	"async_logger/biz"
 	"async_logger/internal/interceptors"
+	"async_logger/internal/logger"
 	"net"
 
 	"google.golang.org/grpc"
@@ -14,9 +15,10 @@ type App struct {
 	gRPCServer *grpc.Server
 	listenAddr string
 	acl        map[string][]string
+	logger     *logger.Logger
 }
 
-func New(listenAddr string, ACLData map[string][]string) *App {
+func New(listenAddr string, ACLData map[string][]string, logger *logger.Logger) *App {
 	gRPCServer := grpc.NewServer(
 		grpc.UnaryInterceptor(interceptors.AclInterceptor(ACLData)),
 		grpc.StreamInterceptor(interceptors.AclStreamInterceptor(ACLData)),
@@ -30,6 +32,7 @@ func New(listenAddr string, ACLData map[string][]string) *App {
 		gRPCServer: gRPCServer,
 		listenAddr: listenAddr,
 		acl:        ACLData,
+		logger:     logger,
 	}
 }
 

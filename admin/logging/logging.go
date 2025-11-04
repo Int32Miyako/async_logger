@@ -6,11 +6,12 @@ import (
 )
 
 func GetLogs(
-	_ *pb.Nothing,
 	server pb.Admin_LoggingServer,
 ) error {
 
 	for {
+		// timestep := time.Now()
+
 		err := server.Send(&pb.Event{
 			Timestamp: 0,
 			Consumer:  "",

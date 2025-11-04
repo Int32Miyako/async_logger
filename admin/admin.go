@@ -20,23 +20,23 @@ func RegisterServerAPI(gRPC *grpc.Server) {
 	pb.RegisterAdminServer(gRPC, &ServerAPI{})
 }
 
+func (s *ServerAPI) Logging(
+	_ *pb.Nothing,
+	server pb.Admin_LoggingServer,
+) error {
+	err := logging.GetLogs(server)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *ServerAPI) Statistics(
 	interval *pb.StatInterval,
 	server pb.Admin_StatisticsServer,
 ) error {
 	err := statistics.GetStatistics(interval, server)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *ServerAPI) Logging(
-	nothing *pb.Nothing,
-	server pb.Admin_LoggingServer,
-) error {
-	err := logging.GetLogs(nothing, server)
-
 	if err != nil {
 		return err
 	}
