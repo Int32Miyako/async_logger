@@ -12,9 +12,10 @@ func GetLogs(
 	logger *logger.Logger,
 ) error {
 
-	event := <-logger.Subscribe()
+	ch := logger.Subscribe()
 
 	for {
+		event := <-ch
 
 		err := server.Send(&pb.Event{
 			Timestamp: event.Timestamp,
