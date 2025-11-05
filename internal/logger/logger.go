@@ -14,24 +14,32 @@ type Event struct {
 }
 
 type Logger struct {
-	log chan *Event
+	subscribers []chan *Event
 }
 
 func (l *Logger) Log(consumer, method, host string) {
-	l.log <- &Event{
-		Timestamp: time.Now().Unix(),
-		Consumer:  consumer,
-		Method:    method,
-		Host:      host,
+	// пробегаемся по каналам и шлем событие в каждый из них
+	for _, ch := range l.subscribers {
+		ch <- &Event{
+			Timestamp: time.Now().Unix(),
+			Consumer:  consumer,
+			Method:    method,
+			Host:      host,
+		}
 	}
 }
 
-func (l *Logger) GetLog() *Event {
-	return <-l.log
+func (l *Logger) Subscribe() chan *Event {
+	// возвращаем последний канал как новый подписчик
+	ch := make(chan *Event, 100)
+	l.subscribers = append(l.subscribers, ch)
+
+	return ch
 }
 
 func New() *Logger {
+	// иници
 	return &Logger{
-		log: make(chan *Event),
+		subscribers: make([]chan *Event, 0),
 	}
 }

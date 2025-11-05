@@ -274,15 +274,15 @@ func TestLogging(t *testing.T) {
 	wg.Wait()
 
 	expectedLogData1 := []*codegen.Event{
-		{Consumer: "logger2", Method: "/main.Admin/Logging"},
-		{Consumer: "biz_user", Method: "/main.Biz/Check"},
-		{Consumer: "biz_admin", Method: "/main.Biz/Check"},
-		{Consumer: "biz_admin", Method: "/main.Biz/Test"},
+		{Consumer: "logger2", Method: "/codegen.Admin/Logging"},
+		{Consumer: "biz_user", Method: "/codegen.Biz/Check"},
+		{Consumer: "biz_admin", Method: "/codegen.Biz/Check"},
+		{Consumer: "biz_admin", Method: "/codegen.Biz/Test"},
 	}
 	expectedLogData2 := []*codegen.Event{
-		{Consumer: "biz_user", Method: "/main.Biz/Check"},
-		{Consumer: "biz_admin", Method: "/main.Biz/Check"},
-		{Consumer: "biz_admin", Method: "/main.Biz/Test"},
+		{Consumer: "biz_user", Method: "/codegen.Biz/Check"},
+		{Consumer: "biz_admin", Method: "/codegen.Biz/Check"},
+		{Consumer: "biz_admin", Method: "/codegen.Biz/Test"},
 	}
 
 	if !reflect.DeepEqual(logData1, expectedLogData1) {
@@ -537,17 +537,17 @@ func TestWorkAfterDisconnect(t *testing.T) {
 	wg.Wait()
 
 	expectedLogData1 := []*codegen.Event{
-		{Consumer: "logger2", Method: "/main.Admin/Logging"},
-		{Consumer: "biz_user", Method: "/main.Biz/Check"},
-		{Consumer: "biz_admin", Method: "/main.Biz/Check"},
-		{Consumer: "biz_admin", Method: "/main.Biz/Test"},
+		{Consumer: "logger2", Method: "/codegen.Admin/Logging"},
+		{Consumer: "biz_user", Method: "/codegen.Biz/Check"},
+		{Consumer: "biz_admin", Method: "/codegen.Biz/Check"},
+		{Consumer: "biz_admin", Method: "/codegen.Biz/Test"},
 	}
 	expectedLogData2 := []*codegen.Event{
-		{Consumer: "biz_user", Method: "/main.Biz/Check"},
-		{Consumer: "biz_admin", Method: "/main.Biz/Check"},
-		{Consumer: "biz_admin", Method: "/main.Biz/Test"},
-		{Consumer: "after_disconnect", Method: "/main.Biz/Add"}, // CHANGED
-		{Consumer: "after_disconnect", Method: "/main.Biz/Add"}, // CHANGED
+		{Consumer: "biz_user", Method: "/codegen.Biz/Check"},
+		{Consumer: "biz_admin", Method: "/codegen.Biz/Check"},
+		{Consumer: "biz_admin", Method: "/codegen.Biz/Test"},
+		{Consumer: "after_disconnect", Method: "/codegen.Biz/Add"}, // CHANGED
+		{Consumer: "after_disconnect", Method: "/codegen.Biz/Add"}, // CHANGED
 	}
 
 	if !reflect.DeepEqual(logData1, expectedLogData1) {

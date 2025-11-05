@@ -22,6 +22,7 @@ func GetStatistics(
 	fmt.Println("interval:", interval)
 
 	for {
+
 		err := server.Send(&pb.Stat{
 			Timestamp:  0,
 			ByMethod:   nil,
