@@ -3,17 +3,19 @@ package stat
 import "time"
 
 type Stat struct {
-	subscribers []chan *StatRecord
+	subscribers []chan *StatisticsRecord
+	byMethod    map[string]uint64
+	byConsumer  map[string]uint64
 }
 
-type StatRecord struct {
+type StatisticsRecord struct {
 	Timestamp  int64
 	ByMethod   map[string]uint64
 	ByConsumer map[string]uint64
 }
 
-func (s *Stat) Subscribe() chan *StatRecord {
-	ch := make(chan *StatRecord, 100)
+func (s *Stat) Subscribe() chan *StatisticsRecord {
+	ch := make(chan *StatisticsRecord, 100)
 	s.subscribers = append(s.subscribers, ch)
 
 	return ch
@@ -21,35 +23,29 @@ func (s *Stat) Subscribe() chan *StatRecord {
 
 func New() *Stat {
 	return &Stat{
-		subscribers: make([]chan *StatRecord, 0),
+		subscribers: make([]chan *StatisticsRecord, 0),
+		byMethod:    make(map[string]uint64),
+		byConsumer:  make(map[string]uint64),
 	}
 }
 
 // отправлять будем в момент тикера тик
 
-func (l *Stat) SendStatToSubs(consumer, method map[string]uint64) {
+func (s *Stat) sendStatToSubs() {
 	// пробегаемся по каналам и шлем событие в каждый из них
-	for _, ch := range l.subscribers {
-		ch <- &StatRecord{
+	for _, ch := range s.subscribers {
+		ch <- &StatisticsRecord{
 			Timestamp:  time.Now().Unix(),
-			ByConsumer: consumer,
-			ByMethod:   method,
+			ByConsumer: s.byConsumer,
+			ByMethod:   s.byMethod,
 		}
 	}
 }
 
-func (l *Stat) AddMethodToListenInStatistics() chan map[string]uint64 {
-	result := make(chan map[string]uint64)
-	return result
-}
-
-func (l *Stat) AddConsumerToListenInStatistics() chan map[string]uint64 {
-	return nil
-}
-
-func (l *Stat) HandleStat(method string, consumer string) {
-	// тут нужно собрать статистику и разослать ее подписчикам
-
+func (s *Stat) UpdateStat(method string, consumer string) {
+	s.byMethod[method]++
+	s.byConsumer[consumer]++
+	s.sendStatToSubs()
 }
 
 // по мапе должны идти подсчеты

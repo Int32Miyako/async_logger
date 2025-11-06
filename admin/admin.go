@@ -3,7 +3,6 @@ package admin
 import (
 	pb "async_logger/codegen"
 	"async_logger/internal/logging"
-	"async_logger/internal/stat"
 	"io"
 	"time"
 
@@ -17,7 +16,6 @@ import (
 type ServerAPI struct {
 	pb.UnimplementedAdminServer
 	logger *logging.Logger
-	stat   *stat.Stat
 }
 
 func RegisterServerAPI(gRPC *grpc.Server, eventLogger *logging.Logger) {
@@ -60,8 +58,7 @@ func (s *ServerAPI) Statistics(
 	// ticker генерирует события через фиксированные интервалы времени
 	defer ticker.Stop()
 
-	statistics := s.stat
-	ch := statistics.Subscribe()
+	ch := s.logger.Stat.Subscribe()
 
 	for {
 		select {

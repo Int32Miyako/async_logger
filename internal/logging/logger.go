@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"async_logger/internal/stat"
 	"time"
 )
 
@@ -15,6 +16,7 @@ type Event struct {
 
 type Logger struct {
 	subscribers []chan *Event
+	*stat.Stat
 }
 
 func (l *Logger) Log(consumer, method, host string) {
@@ -41,5 +43,6 @@ func New() *Logger {
 	// иници
 	return &Logger{
 		subscribers: make([]chan *Event, 0),
+		Stat:        stat.New(),
 	}
 }
