@@ -2,7 +2,7 @@ package interceptors
 
 import (
 	"async_logger/internal/acl"
-	"async_logger/internal/logger"
+	"async_logger/internal/logging"
 	"context"
 
 	"google.golang.org/grpc"
@@ -13,7 +13,7 @@ import (
 )
 
 // AclInterceptor возвращает интерсептор с замыканием на aclData
-func AclInterceptor(aclData map[string][]string, logger *logger.Logger) grpc.UnaryServerInterceptor {
+func AclInterceptor(aclData map[string][]string, logger *logging.Logger) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req any,
@@ -31,7 +31,7 @@ func AclInterceptor(aclData map[string][]string, logger *logger.Logger) grpc.Una
 	}
 }
 
-func AclStreamInterceptor(aclData map[string][]string, logger *logger.Logger) grpc.StreamServerInterceptor {
+func AclStreamInterceptor(aclData map[string][]string, logger *logging.Logger) grpc.StreamServerInterceptor {
 	return func(
 		srv any,
 		stream grpc.ServerStream,
@@ -45,7 +45,7 @@ func AclStreamInterceptor(aclData map[string][]string, logger *logger.Logger) gr
 	}
 }
 
-func checkACL(aclData map[string][]string, logger *logger.Logger, ctx context.Context, fullMethod string) error {
+func checkACL(aclData map[string][]string, logger *logging.Logger, ctx context.Context, fullMethod string) error {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return status.Error(codes.Unauthenticated, "no metadata provided")

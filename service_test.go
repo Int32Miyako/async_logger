@@ -226,7 +226,7 @@ func TestLogging(t *testing.T) {
 		defer wg.Done()
 		for i := 0; i < 4; i++ {
 			evt, err := logStream1.Recv()
-			// log.Println("logger 1", evt, err)
+			// log.Println("logging 1", evt, err)
 			if err != nil {
 				t.Errorf("unexpected error: %v, awaiting event", err)
 				return
@@ -246,7 +246,7 @@ func TestLogging(t *testing.T) {
 		defer wg.Done()
 		for i := 0; i < 3; i++ {
 			evt, err := logStream2.Recv()
-			// log.Println("logger 2", evt, err)
+			// log.Println("logging 2", evt, err)
 			if err != nil {
 				t.Errorf("unexpected error: %v, awaiting event", err)
 				return
@@ -374,10 +374,10 @@ func TestStat(t *testing.T) {
 
 	expectedStat1 := &codegen.Stat{
 		ByMethod: map[string]uint64{
-			"/main.Biz/Check":        1,
-			"/main.Biz/Add":          1,
-			"/main.Biz/Test":         1,
-			"/main.Admin/Statistics": 1,
+			"/codegen.Biz/Check":        1,
+			"/codegen.Biz/Add":          1,
+			"/codegen.Biz/Test":         1,
+			"/codegen.Admin/Statistics": 1,
 		},
 		ByConsumer: map[string]uint64{
 			"biz_user":  2,
@@ -399,7 +399,7 @@ func TestStat(t *testing.T) {
 	expectedStat1 = &codegen.Stat{
 		Timestamp: 0,
 		ByMethod: map[string]uint64{
-			"/main.Biz/Add": 1,
+			"/codegen.Biz/Add": 1,
 		},
 		ByConsumer: map[string]uint64{
 			"biz_admin": 1,
@@ -408,9 +408,9 @@ func TestStat(t *testing.T) {
 	expectedStat2 := &codegen.Stat{
 		Timestamp: 0,
 		ByMethod: map[string]uint64{
-			"/main.Biz/Check": 1,
-			"/main.Biz/Add":   2,
-			"/main.Biz/Test":  1,
+			"/codegen.Biz/Check": 1,
+			"/codegen.Biz/Add":   2,
+			"/codegen.Biz/Test":  1,
 		},
 		ByConsumer: map[string]uint64{
 			"biz_user":  2,
@@ -430,7 +430,7 @@ func TestStat(t *testing.T) {
 	finish()
 }
 
-// TestWorkAfterDisconnect almost the same as TestLogging but one logger will disconnect in process
+// TestWorkAfterDisconnect almost the same as TestLogging but one logging will disconnect in process
 // see comments marked CHANGED
 func TestWorkAfterDisconnect(t *testing.T) {
 	ctx, finish := context.WithCancel(context.Background())
@@ -477,7 +477,7 @@ func TestWorkAfterDisconnect(t *testing.T) {
 		defer wg.Done()
 		for i := 0; i < 4; i++ {
 			evt, err := logStream1.Recv()
-			// log.Println("logger 1", evt, err)
+			// log.Println("logging 1", evt, err)
 			if err != nil {
 				t.Errorf("unexpected error: %v, awaiting event", err)
 				return
@@ -497,7 +497,7 @@ func TestWorkAfterDisconnect(t *testing.T) {
 		defer wg.Done()
 		for i := 0; i < 5; i++ {
 			evt, err := logStream2.Recv()
-			// log.Println("logger 2", evt, err)
+			// log.Println("logging 2", evt, err)
 			if err != nil {
 				t.Errorf("unexpected error: %v, awaiting event", err)
 				return

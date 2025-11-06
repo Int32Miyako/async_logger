@@ -1,10 +1,11 @@
 package admin
 
 import (
-	"async_logger/admin/logging"
-	"async_logger/admin/statistics"
 	pb "async_logger/codegen"
-	"async_logger/internal/logger"
+	"async_logger/internal/logging"
+	"async_logger/internal/stat"
+	"io"
+	"time"
 
 	"google.golang.org/grpc"
 )
@@ -15,10 +16,11 @@ import (
 
 type ServerAPI struct {
 	pb.UnimplementedAdminServer
-	logger *logger.Logger
+	logger *logging.Logger
+	stat   *stat.Stat
 }
 
-func RegisterServerAPI(gRPC *grpc.Server, eventLogger *logger.Logger) {
+func RegisterServerAPI(gRPC *grpc.Server, eventLogger *logging.Logger) {
 	pb.RegisterAdminServer(gRPC, &ServerAPI{
 		logger: eventLogger,
 	})
@@ -28,21 +30,53 @@ func (s *ServerAPI) Logging(
 	_ *pb.Nothing,
 	server pb.Admin_LoggingServer,
 ) error {
-	err := logging.GetLogs(server, s.logger)
-	if err != nil {
-		return err
-	}
+	logger := s.logger
+	ch := logger.Subscribe()
 
-	return nil
+	for {
+		event := <-ch
+
+		err := server.Send(&pb.Event{
+			Timestamp: event.Timestamp,
+			Consumer:  event.Consumer,
+			Method:    event.Method,
+			Host:      event.Host,
+		})
+
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+	}
 }
 
 func (s *ServerAPI) Statistics(
 	interval *pb.StatInterval,
 	server pb.Admin_StatisticsServer,
 ) error {
-	err := statistics.GetStatistics(interval, server)
-	if err != nil {
-		return err
+	ticker := time.NewTicker(time.Duration(interval.GetIntervalSeconds()) * time.Second)
+	// ticker генерирует события через фиксированные интервалы времени
+	defer ticker.Stop()
+
+	statistics := s.stat
+	ch := statistics.Subscribe()
+
+	for {
+		select {
+		case <-ticker.C:
+			err := server.Send(&pb.Stat{
+				Timestamp:  (<-ch).Timestamp,
+				ByMethod:   (<-ch).ByMethod,
+				ByConsumer: (<-ch).ByConsumer,
+			})
+			if err == io.EOF {
+				return nil
+			}
+			if err != nil {
+				return err
+			}
+		}
 	}
-	return nil
 }
