@@ -25,6 +25,8 @@ func New() *Stat {
 	}
 }
 
+// отправлять будем в момент тикера тик
+
 func (l *Stat) SendStatToSubs(consumer, method map[string]uint64) {
 	// пробегаемся по каналам и шлем событие в каждый из них
 	for _, ch := range l.subscribers {
@@ -44,3 +46,14 @@ func (l *Stat) AddMethodToListenInStatistics() chan map[string]uint64 {
 func (l *Stat) AddConsumerToListenInStatistics() chan map[string]uint64 {
 	return nil
 }
+
+func (l *Stat) HandleStat(method string, consumer string) {
+	// тут нужно собрать статистику и разослать ее подписчикам
+
+}
+
+// по мапе должны идти подсчеты
+// map[method]++
+// надо только придумать красивое имя метода
+// встраивать будем туда же в интерсептор
+// потом по тикеру будем слать всем подписчикам
