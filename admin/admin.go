@@ -58,6 +58,7 @@ func (s *ServerAPI) Statistics(
 	// ticker генерирует события через фиксированные интервалы времени
 	defer ticker.Stop()
 
+	s.logger.Stat.IsStarted = true
 	ch := s.logger.Stat.Subscribe()
 
 	for {
@@ -68,12 +69,16 @@ func (s *ServerAPI) Statistics(
 				ByMethod:   (<-ch).ByMethod,
 				ByConsumer: (<-ch).ByConsumer,
 			})
+			s.logger.Stat.ResetStat()
 			if err == io.EOF {
 				return nil
 			}
 			if err != nil {
 				return err
 			}
+
+		case <-server.Context().Done():
+			return nil
 		}
 	}
 }

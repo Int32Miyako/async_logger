@@ -2,6 +2,7 @@ package stat
 
 type Stat struct {
 	subscribers []chan *StatisticsRecord
+	IsStarted   bool
 	*StatisticsRecord
 }
 
@@ -41,6 +42,13 @@ func (s *Stat) UpdateStat(method string, consumer string) {
 	s.StatisticsRecord.ByMethod[method]++
 	s.StatisticsRecord.ByConsumer[consumer]++
 	s.sendStatToSubs()
+}
+
+func (s *Stat) ResetStat() {
+	s.StatisticsRecord = &StatisticsRecord{
+		ByMethod:   make(map[string]uint64),
+		ByConsumer: make(map[string]uint64),
+	}
 }
 
 // по мапе должны идти подсчеты

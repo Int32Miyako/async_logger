@@ -71,7 +71,9 @@ func checkACL(aclData map[string][]string, logger *logging.Logger, ctx context.C
 	}
 
 	logger.Log(user, fullMethod, host)
-	logger.Stat.UpdateStat(fullMethod, user)
+	if logger.Stat.IsStarted {
+		logger.Stat.UpdateStat(fullMethod, user)
+	}
 
 	return nil
 }
