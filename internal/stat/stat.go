@@ -1,27 +1,40 @@
 package stat
 
-type Stat struct {
-	subscribers []chan *StatisticsRecord
-	IsStarted   bool
-	*StatisticsRecord
-}
-
-type StatisticsRecord struct {
-	Timestamp  int64
-	ByMethod   map[string]uint64
-	ByConsumer map[string]uint64
-}
+type (
+	Stat struct {
+		subscribers []Subscriber
+		IsStarted   bool
+		*StatisticsRecord
+	}
+	Subscriber struct {
+		Ch    chan *StatisticsRecord // для транспорта
+		State *StatisticsRecord      // хранения
+	}
+	StatisticsRecord struct {
+		Timestamp  int64
+		ByMethod   map[string]uint64
+		ByConsumer map[string]uint64
+	}
+)
 
 func (s *Stat) Subscribe() chan *StatisticsRecord {
 	ch := make(chan *StatisticsRecord, 100)
-	s.subscribers = append(s.subscribers, ch)
+	sub := Subscriber{
+		Ch: ch,
+		State: &StatisticsRecord{
+			ByMethod:   make(map[string]uint64),
+			ByConsumer: make(map[string]uint64),
+		},
+	}
+
+	s.subscribers = append(s.subscribers, sub)
 
 	return ch
 }
 
 func New() *Stat {
 	return &Stat{
-		subscribers: make([]chan *StatisticsRecord, 0),
+		subscribers: make([]Subscriber, 0),
 		StatisticsRecord: &StatisticsRecord{
 			ByMethod:   make(map[string]uint64),
 			ByConsumer: make(map[string]uint64),
@@ -33,8 +46,8 @@ func New() *Stat {
 
 func (s *Stat) sendStatToSubs() {
 	// пробегаемся по каналам и шлем событие в каждый из них
-	for _, ch := range s.subscribers {
-		ch <- s.StatisticsRecord
+	for _, sub := range s.subscribers {
+		sub.Ch <- s.StatisticsRecord
 	}
 }
 
