@@ -1,14 +1,15 @@
 package stat
 
+import "time"
+
 type (
 	Stat struct {
 		subscribers []Subscriber
 		IsStarted   bool
-		*StatisticsRecord
 	}
 	Subscriber struct {
-		Ch    chan *StatisticsRecord // для транспорта
-		State *StatisticsRecord      // хранения
+		Ch    chan StatisticsRecord // для транспорта
+		State StatisticsRecord      // хранения
 	}
 	StatisticsRecord struct {
 		Timestamp  int64
@@ -17,11 +18,11 @@ type (
 	}
 )
 
-func (s *Stat) Subscribe() chan *StatisticsRecord {
-	ch := make(chan *StatisticsRecord, 100)
+func (s *Stat) Subscribe() chan StatisticsRecord {
+	ch := make(chan StatisticsRecord, 100)
 	sub := Subscriber{
 		Ch: ch,
-		State: &StatisticsRecord{
+		State: StatisticsRecord{
 			ByMethod:   make(map[string]uint64),
 			ByConsumer: make(map[string]uint64),
 		},
@@ -35,10 +36,6 @@ func (s *Stat) Subscribe() chan *StatisticsRecord {
 func New() *Stat {
 	return &Stat{
 		subscribers: make([]Subscriber, 0),
-		StatisticsRecord: &StatisticsRecord{
-			ByMethod:   make(map[string]uint64),
-			ByConsumer: make(map[string]uint64),
-		},
 	}
 }
 
@@ -47,21 +44,29 @@ func New() *Stat {
 func (s *Stat) sendStatToSubs() {
 	// пробегаемся по каналам и шлем событие в каждый из них
 	for _, sub := range s.subscribers {
-		sub.Ch <- s.StatisticsRecord
+		sub.Ch <- sub.State
 	}
 }
 
 func (s *Stat) UpdateStat(method string, consumer string) {
-	s.StatisticsRecord.ByMethod[method]++
-	s.StatisticsRecord.ByConsumer[consumer]++
+	for _, sub := range s.subscribers {
+		sub.State.ByMethod[method]++
+		sub.State.ByConsumer[consumer]++
+	}
+
 	s.sendStatToSubs()
 }
 
-func (s *Stat) ResetStat() {
-	s.StatisticsRecord = &StatisticsRecord{
-		ByMethod:   make(map[string]uint64),
-		ByConsumer: make(map[string]uint64),
+func (s *Stat) ResetStat(ch chan StatisticsRecord) {
+	for _, sub := range s.subscribers {
+		if sub.Ch == ch {
+			sub.State.ByMethod = make(map[string]uint64)
+			sub.State.ByConsumer = make(map[string]uint64)
+			sub.State.Timestamp = time.Now().Unix() // обновляем метку времени
+			return                                  // нашли нужного подписчика, дальше не нужно
+		}
 	}
+
 }
 
 // по мапе должны идти подсчеты

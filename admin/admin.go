@@ -69,7 +69,7 @@ func (s *ServerAPI) Statistics(
 				ByMethod:   (<-ch).ByMethod,
 				ByConsumer: (<-ch).ByConsumer,
 			})
-			s.logger.Stat.ResetStat()
+			s.logger.Stat.ResetStat(ch)
 			if err == io.EOF {
 				return nil
 			}
