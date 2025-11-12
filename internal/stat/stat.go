@@ -41,29 +41,27 @@ func New() *Stat {
 
 // отправлять будем в момент тикера тик
 
-func (s *Stat) sendStatToSubs() {
+func (s *Stat) SendStatToSubs() {
 	// пробегаемся по каналам и шлем событие в каждый из них
-	for _, sub := range s.subscribers {
-		sub.Ch <- sub.State
+	for i := range s.subscribers {
+		s.subscribers[i].Ch <- s.subscribers[i].State
 	}
 }
 
 func (s *Stat) UpdateStat(method string, consumer string) {
-	for _, sub := range s.subscribers {
-		sub.State.ByMethod[method]++
-		sub.State.ByConsumer[consumer]++
+	for i := range s.subscribers {
+		s.subscribers[i].State.ByMethod[method]++
+		s.subscribers[i].State.ByConsumer[consumer]++
 	}
-
-	s.sendStatToSubs()
 }
 
 func (s *Stat) ResetStat(ch chan StatisticsRecord) {
-	for _, sub := range s.subscribers {
-		if sub.Ch == ch {
-			sub.State.ByMethod = make(map[string]uint64)
-			sub.State.ByConsumer = make(map[string]uint64)
-			sub.State.Timestamp = time.Now().Unix() // обновляем метку времени
-			return                                  // нашли нужного подписчика, дальше не нужно
+	for i := range s.subscribers {
+		if s.subscribers[i].Ch == ch {
+			s.subscribers[i].State.ByMethod = make(map[string]uint64)
+			s.subscribers[i].State.ByConsumer = make(map[string]uint64)
+			s.subscribers[i].State.Timestamp = time.Now().Unix() // обновляем метку времени
+			return                                               // нашли нужного подписчика, дальше не нужно
 		}
 	}
 

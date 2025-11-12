@@ -64,10 +64,12 @@ func (s *ServerAPI) Statistics(
 	for {
 		select {
 		case <-ticker.C:
+			s.logger.Stat.SendStatToSubs()
+			stat := <-ch
 			err := server.Send(&pb.Stat{
-				Timestamp:  (<-ch).Timestamp,
-				ByMethod:   (<-ch).ByMethod,
-				ByConsumer: (<-ch).ByConsumer,
+				Timestamp:  stat.Timestamp,
+				ByMethod:   stat.ByMethod,
+				ByConsumer: stat.ByConsumer,
 			})
 			s.logger.Stat.ResetStat(ch)
 			if err == io.EOF {
